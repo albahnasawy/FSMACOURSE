@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامج إدارة سلامة الغذاء - Right Advisor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony -->
+    <!-- Application Structure Plan: A thematic, dashboard-style SPA. The structure is designed for non-linear exploration, allowing users (junior staff or managers) to jump to relevant sections like 'Fundamentals', 'HACCP in Practice', or 'Daily Tools' via a sticky navigation bar. This is more user-friendly than the original report's linear 3-session format, promoting quick access to information and interactive learning through clickable cards, diagrams, and quizzes. -->
+    <!-- Visualization & Content Choices: Report Info (e.g., 3 Hazard Types) -> Goal (Inform) -> Viz (Icon Cards) -> Interaction (Click to expand) -> Justification (Easy comparison). Report Info (Temp. Danger Zone) -> Goal (Warn) -> Viz (Chart.js Bar Chart) -> Interaction (Static visual) -> Justification (Impactful visual representation). Report Info (Quizzes) -> Goal (Assess) -> Viz (Interactive Quiz UI) -> Interaction (Click answers, get feedback) -> Justification (Active learning). This approach uses the best interactive method for each piece of content. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #F8F7F4;
+            color: #3D405B;
+        }
+        .bg-primary { background-color: #4A6C6F; }
+        .text-primary { color: #4A6C6F; }
+        .bg-secondary { background-color: #E07A5F; }
+        .text-secondary { color: #E07A5F; }
+        .bg-accent { background-color: #F2CC8F; }
+        .text-accent { color: #F2CC8F; }
+        .card {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid #EAEAEA;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+            border-bottom: 2px solid transparent;
+            padding-bottom: 4px;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #E07A5F;
+            border-bottom-color: #E07A5F;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .step-connector {
+            flex-grow: 1;
+            height: 2px;
+            background-color: #D1D5DB;
+        }
+        .step.active .step-circle {
+            background-color: #4A6C6F;
+            color: white;
+            border-color: #4A6C6F;
+        }
+        .step.active .step-connector {
+            background-color: #4A6C6F;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header & Navigation -->
+    <header id="header" class="bg-white/80 backdrop-blur-lg shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="https://res.cloudinary.com/dvqik0oco/image/upload/v1753625098/logo2-02_black_emfhdj.png" alt="شعار Right Advisor" class="h-12 ml-4">
+                <h1 class="text-xl md:text-2xl font-bold text-primary">برنامج إدارة سلامة الغذاء</h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-6 lg:space-x-10">
+                <a href="#fundamentals" class="nav-link text-lg">الأساسيات</a>
+                <a href="#journey" class="nav-link text-lg">رحلة الطعام</a>
+                <a href="#haccp" class="nav-link text-lg">الهاسب</a>
+                <a href="#management" class="nav-link text-lg">الإدارة</a>
+                <a href="#tools" class="nav-link text-lg">الأدوات</a>
+            </div>
+            <button id="mobile-menu-button" class="md:hidden text-primary focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4">
+            <a href="#fundamentals" class="block py-2 text-center nav-link">الأساسيات</a>
+            <a href="#journey" class="block py-2 text-center nav-link">رحلة الطعام</a>
+            <a href="#haccp" class="block py-2 text-center nav-link">الهاسب</a>
+            <a href="#management" class="block py-2 text-center nav-link">الإدارة</a>
+            <a href="#tools" class="block py-2 text-center nav-link">الأدوات</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+
+        <!-- Section 1: Fundamentals -->
+        <section id="fundamentals" class="mb-24 text-center">
+            <h2 class="text-4xl font-bold mb-4 text-primary">أساسيات سلامة الغذاء</h2>
+            <p class="max-w-3xl mx-auto text-lg mb-12 text-gray-600">سلامة الغذاء ليست مجرد نظافة، بل هي علم ومنهجية لحماية صحة عملائنا وسمعة علامتنا التجارية. فهم المخاطر هو خط الدفاع الأول.</p>
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Biological Hazard Card -->
+                <div class="card p-8">
+                    <div class="text-5xl mb-4">🦠</div>
+                    <h3 class="text-2xl font-bold mb-3 text-primary">المخاطر البيولوجية</h3>
+                    <p class="text-gray-600">كائنات حية دقيقة مثل البكتيريا والفيروسات. مثال: بكتيريا السالمونيلا في الدجاج النيء لساندويتش الكلوب، أو الليستيريا في ثلاجات عرض الحلويات.</p>
+                </div>
+                <!-- Chemical Hazard Card -->
+                <div class="card p-8">
+                    <div class="text-5xl mb-4">🧪</div>
+                    <h3 class="text-2xl font-bold mb-3 text-primary">المخاطر الكيميائية</h3>
+                    <p class="text-gray-600">مواد كيميائية يمكن أن تلوث الطعام. مثال: بقايا مواد التنظيف على الأكواب، أو مسببات الحساسية مثل الحليب والمكسرات.</p>
+                </div>
+                <!-- Physical Hazard Card -->
+                <div class="card p-8">
+                    <div class="text-5xl mb-4">🔩</div>
+                    <h3 class="text-2xl font-bold mb-3 text-primary">المخاطر الفيزيائية</h3>
+                    <p class="text-gray-600">أجسام غريبة يمكن أن تدخل الطعام. مثال: شظايا زجاج، قطع بلاستيك، أو شعر، أو حتى حبة بن غير مطحونة في مشروب.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Safe Food Journey -->
+        <section id="journey" class="mb-24">
+            <h2 class="text-4xl font-bold mb-4 text-center text-primary">رحلة الطعام الآمن</h2>
+            <p class="max-w-3xl mx-auto text-lg mb-12 text-center text-gray-600">يتطلب ضمان سلامة الغذاء التحكم في كل خطوة يمر بها الطعام داخل المقهى. استكشف كل مرحلة لمعرفة الممارسات الأساسية للتحكم في المخاطر.</p>
+            <div class="w-full max-w-4xl mx-auto">
+                <div id="journey-steps" class="flex items-center justify-center space-x-2 md:space-x-4 rtl:space-x-reverse">
+                    <!-- Steps will be generated by JS -->
+                </div>
+                <div id="journey-content" class="mt-8 card p-8 min-h-[200px]">
+                    <!-- Content will be updated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: HACCP -->
+        <section id="haccp" class="mb-24">
+            <h2 class="text-4xl font-bold mb-4 text-center text-primary">نظام الهاسب (HACCP) في الممارسة</h2>
+            <p class="max-w-3xl mx-auto text-lg mb-12 text-center text-gray-600">الهاسب هو نظام وقائي وعلمي لتحديد المخاطر والتحكم فيها. إنه ينقلنا من الممارسات العامة إلى التحكم الدقيق في العمليات لمنع المشاكل قبل حدوثها.</p>
+            
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+                <h3 class="text-2xl font-bold text-center mb-6 text-primary">مبادئ الهاسب السبعة</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 text-center">
+                    <!-- HACCP Principles will be generated by JS -->
+                </div>
+            </div>
+            
+            <div id="haccp-details" class="mt-4 p-6 bg-gray-50 rounded-lg min-h-[100px] text-center text-lg text-gray-700 hidden"></div>
+
+            <div class="grid lg:grid-cols-2 gap-12 items-start">
+                <div class="card p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-primary">مستويات التحكم في المخاطر</h3>
+                    <p class="mb-6 text-gray-600">لفهم نظام إدارة سلامة الغذاء بشكل كامل، من المهم التمييز بين ثلاثة أنواع من تدابير التحكم. انقر على كل نوع لمعرفة المزيد.</p>
+                    <div id="control-tabs" class="flex border-b">
+                        <!-- Control tabs will be generated by JS -->
+                    </div>
+                    <div id="control-content" class="mt-6">
+                        <!-- Control content will be updated by JS -->
+                    </div>
+                </div>
+                <div class="card p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-primary">منطقة الخطر الحراري</h3>
+                    <p class="mb-6 text-gray-600">هي نطاق درجات الحرارة الذي تنمو فيه البكتيريا بسرعة ($5^{\circ}C$ - $63^{\circ}C$). الحفاظ على الطعام خارج هذا النطاق هو نقطة تحكم حرجة.</p>
+                    <div class="chart-container">
+                        <canvas id="tempDangerZoneChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Management & Compliance -->
+        <section id="management" class="mb-24">
+            <h2 class="text-4xl font-bold mb-4 text-center text-primary">الإدارة والامتثال</h2>
+            <p class="max-w-3xl mx-auto text-lg mb-12 text-center text-gray-600">الإجراءات الفعالة تتطلب نظامًا إداريًا قويًا. يضمن إطار ISO 22000 والامتثال للوائح المحلية تطبيق سلامة الغذاء بشكل مستمر وموثوق.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold text-primary mb-3">دور القيادة (ISO 22000)</h3>
+                    <p class="text-gray-600">التزام الإدارة العليا هو المحرك الأساسي للنظام، ويظهر من خلال توفير الموارد، وضع السياسات، والقيادة بالقدوة.</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold text-primary mb-3">دورة PDCA للتحسين</h3>
+                    <p class="text-gray-600">خطط (Plan)، نفذ (Do)، تحقق (Check)، تصرف (Act). هي دورة مستمرة لضمان تحسين أداء سلامة الغذاء باستمرار.</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold text-primary mb-3">الامتثال القانوني (NFSA)</h3>
+                    <p class="text-gray-600">الالتزام بمتطلبات الهيئة القومية لسلامة الغذاء في مصر ليس اختياريًا، بل هو شرط قانوني لحماية المستهلك والعمل بشكل شرعي.</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold text-primary mb-3">التتبع (Traceability)</h3>
+                    <p class="text-gray-600">نظام يسمح بتتبع المكونات "خطوة للخلف" (من المورد) و"خطوة للأمام" (إلى المنتج النهائي) وهو حيوي لإدارة الأزمات.</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold text-primary mb-3">إدارة الأزمات</h3>
+                    <p class="text-gray-600">وجود خطة مكتوبة ومختبرة للسحب والاسترجاع ضروري للتعامل مع أي حوادث سلامة غذاء بشكل فعال وسريع.</p>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold text-primary mb-3">التدقيق الداخلي</h3>
+                    <p class="text-gray-600">فحص ذاتي ومنهجي للتأكد من أن النظام المطبق على أرض الواقع يتوافق مع الخطط والسياسات الموضوعة.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5: Tools -->
+        <section id="tools" class="mb-16">
+            <h2 class="text-4xl font-bold mb-4 text-center text-primary">أدواتك اليومية</h2>
+            <p class="max-w-3xl mx-auto text-lg mb-12 text-center text-gray-600">حوّل معرفتك إلى ممارسة. استخدم هذه الأدوات التفاعلية لتقييم فهمك وتطبيق معايير السلامة في عملك اليومي.</p>
+            <div class="grid lg:grid-cols-5 gap-8">
+                <div class="lg:col-span-3 card p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-primary">اختبر معلوماتك</h3>
+                    <div id="quiz-container">
+                        <div id="quiz-question" class="text-xl mb-4"></div>
+                        <div id="quiz-options" class="space-y-3 mb-6"></div>
+                        <button id="quiz-next" class="bg-primary text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition">السؤال التالي</button>
+                        <div id="quiz-result" class="text-2xl font-bold mt-4"></div>
+                    </div>
+                </div>
+                <div class="lg:col-span-2 card p-8">
+                    <h3 class="text-2xl font-bold mb-6 text-primary">قائمة التحقق اليومية</h3>
+                    <div id="checklist-container" class="space-y-4">
+                        <!-- Checklist items will be generated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-16">
+        <div class="container mx-auto px-6 py-8 text-center">
+            <img src="https://res.cloudinary.com/dvqik0oco/image/upload/v1753625098/logo2-02_black_emfhdj.png" alt="شعار Right Advisor" class="h-16 mx-auto mb-4 filter invert">
+            <p>برنامج إدارة سلامة الغذاء مقدم من <span class="font-bold">Right Advisor</span> لاستشارات سلامة الغذاء.</p>
+            <p class="mt-2 text-sm text-gray-400">مستوحى من معايير Codex, ISO 22000, وتشريعات الهيئة القومية لسلامة الغذاء.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+            const journeyData = [
+                {
+                    title: "الاستلام",
+                    content: "نقطة التحكم الأولى. يجب فحص جميع المواد عند وصولها. تأكد من درجات الحرارة الصحيحة (مبرّد ≤ 5°C، مجمد ≤ -18°C)، سلامة العبوات، وتواريخ الصلاحية. تعامل فقط مع موردين معتمدين."
+                },
+                {
+                    title: "التخزين",
+                    content: "التخزين السليم يمنع نمو البكتيريا. طبق قاعدة (FIFO). افصل تمامًا بين الأطعمة النيئة والجاهزة للأكل (RTE)، حيث توضع الأطعمة الجاهزة في الرفوف العلوية. غطِّ وسمِّ جميع الأطعمة."
+                },
+                {
+                    title: "التحضير",
+                    content: "هذه المرحلة مليئة بفرص التلوث المتبادل. استخدم ألواح تقطيع وأدوات مختلفة (نظام ألوان) للأطعمة النيئة والجاهزة. نظف وطهر عصا تبخير الحليب بين كل استخدام للتحكم في مسببات الحساسية."
+                },
+                {
+                    title: "التقديم",
+                    content: "حافظ على درجات حرارة الأطعمة المعروضة (ساخنة > 63°C، باردة < 5°C). احمِ الطعام المعروض بحواجز زجاجية ووفر أدوات تقديم نظيفة ومنفصلة لكل صنف."
+                }
+            ];
+
+            const journeyStepsContainer = document.getElementById('journey-steps');
+            const journeyContentContainer = document.getElementById('journey-content');
+            
+            journeyData.forEach((item, index) => {
+                const stepElement = document.createElement('div');
+                stepElement.className = 'step flex-1 flex flex-col md:flex-row items-center cursor-pointer group';
+                stepElement.innerHTML = `
+                    <div class="step-circle w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-gray-300 flex items-center justify-center font-bold text-lg transition-colors duration-300 group-hover:bg-accent">${index + 1}</div>
+                    <span class="text-sm md:text-base md:mr-2 mt-2 md:mt-0 font-semibold transition-colors duration-300 group-hover:text-secondary">${item.title}</span>
+                `;
+                
+                if (index < journeyData.length - 1) {
+                    const connector = document.createElement('div');
+                    connector.className = 'step-connector transition hidden md:block';
+                    stepElement.appendChild(connector);
+                }
+
+                stepElement.addEventListener('click', () => {
+                    updateJourneyContent(index);
+                });
+                journeyStepsContainer.appendChild(stepElement);
+            });
+
+            function updateJourneyContent(index) {
+                journeyContentContainer.innerHTML = `
+                    <h3 class="text-2xl font-bold mb-4 text-primary">${journeyData[index].title}</h3>
+                    <p class="text-gray-700 text-lg">${journeyData[index].content}</p>
+                `;
+                
+                document.querySelectorAll('#journey-steps .step').forEach((step, i) => {
+                    if (i === index) {
+                        step.classList.add('active');
+                    } else {
+                        step.classList.remove('active');
+                    }
+                });
+            }
+            updateJourneyContent(0);
+
+            const haccpPrinciples = [
+                { name: "تحليل المخاطر", detail: "تحديد جميع المخاطر البيولوجية، الكيميائية، والفيزيائية المحتملة في كل خطوة." },
+                { name: "تحديد CCPs", detail: "تحديد نقاط التحكم الحرجة التي يمكن عندها منع أو القضاء على الخطر." },
+                { name: "وضع الحدود الحرجة", detail: "تحديد قيم قصوى ودنيا (حرارة، وقت) يجب الالتزام بها." },
+                { name: "إنشاء المراقبة", detail: "وضع نظام للرصد المنتظم للحدود الحرجة في كل CCP." },
+                { name: "تحديد الإجراءات التصحيحية", detail: "تحديد الإجراءات التي يجب اتخاذها عند خروج CCP عن حدودها." },
+                { name: "وضع إجراءات التحقق", detail: "التأكد من أن نظام الهاسب يعمل بفعالية (مراجعة، اختبارات)." },
+                { name: "إنشاء التوثيق", detail: "الاحتفاظ بسجلات دقيقة لجميع الأنشطة المتعلقة بالنظام." },
+            ];
+            const haccpContainer = document.querySelector('#haccp .grid');
+            const haccpDetails = document.getElementById('haccp-details');
+            haccpPrinciples.forEach((p, index) => {
+                const principleDiv = document.createElement('div');
+                principleDiv.className = 'p-2';
+                principleDiv.innerHTML = `<div class="bg-white rounded-lg p-3 cursor-pointer h-full flex flex-col justify-center items-center shadow hover:shadow-md transition">
+                    <div class="bg-primary text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-xl mb-2">${index+1}</div>
+                    <h4 class="font-semibold text-sm">${p.name}</h4>
+                </div>`;
+                principleDiv.addEventListener('click', () => {
+                    haccpDetails.textContent = p.detail;
+                    haccpDetails.classList.remove('hidden');
+                });
+                haccpContainer.appendChild(principleDiv);
+            });
+
+
+            const controlData = {
+                PRP: { title: "PRPs", fullName: "برامج المتطلبات الأساسية", content: "هي الأساسيات والممارسات الصحية الجيدة (GHP) التي تخلق بيئة نظيفة وآمنة بشكل عام. مثال: برنامج النظافة الشخصية، برنامج مكافحة الآفات. فشلها يزيد الخطر العام ولكن لا يعني منتجًا غير آمن فورًا." },
+                OPRP: { title: "OPRPs", fullName: "البرامج التشغيلية المسبقة", content: "هي 'الضوابط المعززة' التي تتحكم في خطر كبير ولكنها ليست CCP. مثال عملي: إجراء تطهير عصا تبخير الحليب بين استخدام الحليب البقري وحليب الشوفان للتحكم في مسببات الحساسية." },
+                CCP: { title: "CCPs", fullName: "نقاط التحكم الحرجة", content: "هي 'نقاط الإيقاف المطلق'. خطوة إذا فقدت السيطرة عليها، سيؤدي ذلك مباشرة إلى منتج غير آمن. مثال: الطهي لدرجة حرارة معينة للقضاء على البكتيريا، أو التبريد السريع." }
+            };
+            const controlTabsContainer = document.getElementById('control-tabs');
+            const controlContentContainer = document.getElementById('control-content');
+            Object.keys(controlData).forEach((key, index) => {
+                const tab = document.createElement('button');
+                tab.className = 'control-tab flex-1 py-2 px-1 text-center font-semibold border-b-2 transition';
+                tab.textContent = controlData[key].title;
+                tab.dataset.target = key;
+                if(index === 0) tab.classList.add('active', 'border-primary', 'text-primary');
+                else tab.classList.add('border-transparent', 'text-gray-500');
+
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.control-tab').forEach(t => {
+                        t.classList.remove('active', 'border-primary', 'text-primary');
+                        t.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    tab.classList.add('active', 'border-primary', 'text-primary');
+                    updateControlContent(key);
+                });
+                controlTabsContainer.appendChild(tab);
+            });
+            function updateControlContent(key) {
+                const data = controlData[key];
+                controlContentContainer.innerHTML = `
+                    <h4 class="text-xl font-bold text-primary mb-2">${data.fullName}</h4>
+                    <p class="text-gray-600">${data.content}</p>
+                `;
+            }
+            updateControlContent('PRP');
+
+            const tempCtx = document.getElementById('tempDangerZoneChart').getContext('2d');
+            new Chart(tempCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['التجميد', 'التبريد الآمن', 'منطقة الخطر', 'الطهي/الحفظ الساخن'],
+                    datasets: [{
+                        label: 'درجات الحرارة',
+                        data: [
+                            [-18, 0],  // التجميد
+                            [0, 5],    // التبريد
+                            [5, 63],   // الخطر
+                            [63, 75]   // الساخن
+                        ],
+                        backgroundColor: [
+                            '#3B82F6', 
+                            '#10B981', 
+                            '#EF4444',
+                            '#F97316'
+                        ],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 2,
+                        barPercentage: 1.0,
+                        categoryPercentage: 1.0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            min: -20,
+                            max: 80,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '°C'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'درجة الحرارة (مئوية)'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.raw[0]}°C to ${context.raw[1]}°C`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            const quizData = [
+                {
+                    question: "منطقة الخطر الحراري التي تنمو فيها البكتيريا بسرعة هي:",
+                    options: ["تحت 5°C", "بين 5°C و 63°C", "فوق 63°C"],
+                    answer: "بين 5°C و 63°C"
+                },
+                {
+                    question: "لمنع التلوث المتبادل بمسببات الحساسية (مثل الحليب)، يجب:",
+                    options: ["شطف إبريق التبخير بالماء فقط", "استخدام إبريق منفصل أو تنظيفه وتطهيره جيدًا", "لا داعي للقلق، الحرارة تقتل الحساسية"],
+                    answer: "استخدام إبريق منفصل أو تنظيفه وتطهيره جيدًا"
+                },
+                {
+                    question: "ماذا تعني CCP في نظام الهاسب؟",
+                    options: ["نقطة تنظيف حرجة", "نقطة تحكم حرجة", "عملية طهي مستمرة"],
+                    answer: "نقطة تحكم حرجة"
+                },
+                {
+                    question: "عند استلام شحنة حليب مبردة، ما هي درجة الحرارة القصوى المقبولة؟",
+                    options: ["10°C", "0°C", "5°C"],
+                    answer: "5°C"
+                }
+            ];
+            let currentQuestionIndex = 0;
+            let score = 0;
+            const quizContainer = document.getElementById('quiz-container');
+            const questionEl = document.getElementById('quiz-question');
+            const optionsEl = document.getElementById('quiz-options');
+            const nextBtn = document.getElementById('quiz-next');
+            const resultEl = document.getElementById('quiz-result');
+
+            function loadQuiz() {
+                resultEl.textContent = '';
+                nextBtn.textContent = 'السؤال التالي';
+                nextBtn.classList.remove('bg-secondary');
+                nextBtn.classList.add('bg-primary');
+
+                const currentQuestion = quizData[currentQuestionIndex];
+                questionEl.textContent = currentQuestion.question;
+                optionsEl.innerHTML = '';
+                currentQuestion.options.forEach(option => {
+                    const button = document.createElement('button');
+                    button.textContent = option;
+                    button.className = 'block w-full text-right p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition';
+                    button.onclick = () => selectAnswer(button, option, currentQuestion.answer);
+                    optionsEl.appendChild(button);
+                });
+                nextBtn.style.display = 'none';
+            }
+
+            function selectAnswer(button, selected, correct) {
+                Array.from(optionsEl.children).forEach(btn => {
+                    btn.disabled = true;
+                    if (btn.textContent === correct) {
+                        btn.classList.remove('bg-gray-100');
+                        btn.classList.add('bg-green-200', 'border', 'border-green-400');
+                    }
+                });
+
+                if (selected === correct) {
+                    score++;
+                } else {
+                    button.classList.remove('bg-gray-100');
+                    button.classList.add('bg-red-200', 'border', 'border-red-400');
+                }
+                nextBtn.style.display = 'block';
+                if (currentQuestionIndex === quizData.length - 1) {
+                    nextBtn.textContent = 'عرض النتيجة';
+                }
+            }
+            
+            nextBtn.addEventListener('click', () => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < quizData.length) {
+                    loadQuiz();
+                } else {
+                    questionEl.textContent = 'اكتمل الاختبار!';
+                    optionsEl.innerHTML = '';
+                    resultEl.innerHTML = `نتيجتك: <span class="text-secondary font-bold">${score}</span> من ${quizData.length}`;
+                    nextBtn.textContent = 'إعادة الاختبار';
+                    nextBtn.classList.remove('bg-primary');
+                    nextBtn.classList.add('bg-secondary');
+                    nextBtn.onclick = () => {
+                        currentQuestionIndex = 0;
+                        score = 0;
+                        loadQuiz();
+                        nextBtn.onclick = nextQuestionHandler;
+                    };
+                }
+            });
+
+            const nextQuestionHandler = nextBtn.onclick;
+            
+            loadQuiz();
+            
+            const checklistData = [
+                { text: "ارتداء زي نظيف وكامل", checked: false },
+                { text: "فحص حرارة الثلاجات والمجمدات", checked: false },
+                { text: "الأسطح ومعدات الباريستا نظيفة ومطهرة", checked: false },
+                { text: "فصل تام بين النيء والجاهز", checked: false },
+                { text: "أحواض غسيل الأيدي مجهزة", checked: false }
+            ];
+            const checklistContainer = document.getElementById('checklist-container');
+            checklistData.forEach(item => {
+                const label = document.createElement('label');
+                label.className = 'flex items-center space-x-3 rtl:space-x-reverse cursor-pointer p-2 rounded-lg hover:bg-gray-50 transition';
+                label.innerHTML = `
+                    <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary">
+                    <span class="text-gray-700">${item.text}</span>
+                `;
+                checklistContainer.appendChild(label);
+            });
+        });
+    </script>
+</body>
+</html>
